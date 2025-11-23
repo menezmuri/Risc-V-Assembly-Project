@@ -1,16 +1,21 @@
 .data
+instructions_msg: .asciz "Enter a positive integer to calculate the n-th Fibonacci number.\nOnly integers are accepted.\nNegative numbers or non-integers will be rejected.\nIf the result exceeds 32 bits, an overflow message will be shown.\n"
 prompt: .asciz "Int Number= "
-overflow_msg: .asciz "overflow: resultado excede 32-bit\n"
+overflow_msg: .asciz "overflow: result exceeds 32-bit\n"
 input_buf: .space 32
-invalid_msg: .asciz "entrada invalida: somente inteiros\n"
+invalid_msg: .asciz "invalid input: only integers allowed\n"
 .text
 .globl main
 main:
+        # Show instructions before prompt
+        la a0, instructions_msg
+        li a7, 4
+        ecall
     la a0, prompt
     li a7, 4
     ecall
 
-    # read line into buffer and parse as integer (validate chars)
+    # Read line into buffer and parse as integer (validate chars)
     la a0, input_buf
     li a1, 32
     li a7, 8         # read_string (RARS syscall)
@@ -21,7 +26,7 @@ main:
     li t2, 0          # t2 = any_digit flag
     li t3, 1          # t3 = sign (1 or -1)
     lb t4, 0(t0)      # t4 = *ptr
-    # skip leading whitespace
+    # Skip leading whitespace
 skip_spaces_iter:
     li t5, 32
     beq t4, t5, skip_space_next_iter
@@ -38,7 +43,7 @@ skip_space_next_iter:
     j skip_spaces_iter
 
 parse_start_iter:
-    # optional sign
+    # Optional sign
     li t5, 45         # '-'
     beq t4, t5, set_neg_iter
     li t5, 43         # '+'
@@ -54,7 +59,7 @@ skip_sign_iter:
     lb t4, 0(t0)
 
 parse_digits_iter:
-    # loop over characters
+    # Loop over characters
     li t5, 0
 parse_loop_iter:
     beq t4, t5, parse_done_iter   # null terminator
@@ -62,12 +67,12 @@ parse_loop_iter:
     beq t4, t6, parse_done_iter   # newline
     li t6, 13
     beq t4, t6, parse_done_iter
-    # check digit: if t4 < '0' or t4 > '9' -> invalid
+    # Check digit: if t4 < '0' or t4 > '9' -> invalid
     li t6, 48
     blt t4, t6, invalid_input_iter
     li t6, 57
     bgt t4, t6, invalid_input_iter
-    # digit: result = result*10 + (t4 - '0')
+    # Digit: result = result*10 + (t4 - '0')
     li t6, 48
     addi t5, t4, -48    # t5 = digit value
     slli t6, t1, 3      # t6 = t1 * 8
@@ -87,7 +92,7 @@ invalid_input_iter:
 
 parse_done_iter:
     beqz t2, invalid_input_iter
-    # apply sign if negative
+    # Apply sign if negative
     li t5, -1
     beq t3, t5, make_negative_iter
     j parse_finish_iter
