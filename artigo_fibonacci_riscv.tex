@@ -1,0 +1,269 @@
+% -*- coding: utf-8 -*-
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{geometry}
+\geometry{top=25mm,left=25mm,right=25mm,bottom=25mm}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{enumitem}
+\setlength{\parindent}{0.8cm}
+\setlength{\parskip}{0.2cm}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  captionpos=b,
+  numbers=left,
+  numberstyle=\tiny,
+  keywordstyle=\color{blue},
+  commentstyle=\color{gray},
+  morecomment=[l][\color{magenta}]{\#}
+}
+
+\title{Estudo e Implementação: Fibonacci em Assembly RISC-V e Análise Comparativa de Arquiteturas}
+\author{Autor: Grupo de Estudo RISC-V \thanks{Projeto educacional}} 
+\date{Novembro de 2025}
+
+\begin{document}
+
+\maketitle
+\begin{abstract}
+Este artigo apresenta um estudo sobre a arquitetura RISC-V, descreve os objetivos e a metodologia do projeto educacional realizado, e documenta a implementação de programas simples em Assembly RISC-V (versões iterativa e recursiva do cálculo de Fibonacci) usando simuladores. Realiza-se também uma comparação crítica entre RISC-V e arquiteturas proprietárias amplamente usadas (ARM e x86), discutindo diferenças de projeto, impactos na pesquisa acadêmica e na indústria, e as implicações do uso de uma ISA aberta. O apêndice inclui os códigos-fonte e instruções para execução em simuladores como RARS e Spike/QEMU.
+\end{abstract}
+
+\noindent\textbf{Palavras-chave:} RISC-V, arquitetura, Assembly, simulador, comparação ARM, x86, ensino.
+
+\tableofcontents
+\newpage
+
+\section{Introdução}
+A recente emergência da arquitetura RISC-V tem atraído atenção da comunidade acadêmica e da indústria por ser uma ISA (Instruction Set Architecture) aberta, modular e extensível. Ao contrário das arquiteturas proprietárias (como ARM e x86), RISC-V permite que pesquisadores, desenvolvedores e empresas implementem, estendam e personalizem a ISA sem custos de licenciamento. Este trabalho objetiva estudar os princípios da arquitetura RISC-V, comparar suas características com arquiteturas proprietárias, avaliar impactos do uso de uma arquitetura aberta, e implementar programas em Assembly RISC-V no contexto educacional.
+
+O projeto teve um duplo propósito: (1) descrever conceitualmente diferenças arquiteturais e suas consequências práticas; (2) fornecer experiência prática de baixo nível através da codificação em Assembly e uso de simuladores para validar comportamentos.
+
+\section{Objetivos}
+Os objetivos do projeto são:
+\begin{itemize}[noitemsep]
+  \item Estudar os princípios de arquitetura do RISC-V;
+  \item Comparar suas características com arquiteturas proprietárias (ARM e x86);
+  \item Avaliar os impactos do uso de uma arquitetura aberta na academia e na indústria;
+  \item Desenvolver um programa simples em Assembly RISC-V, usando simulador (implementações iterativa e recursiva do Fibonacci).
+\end{itemize}
+
+\section{Metodologia}
+A metodologia adotada combina pesquisa bibliográfica, análise comparativa e implementação prática:
+\begin{enumerate}[noitemsep]
+  \item Pesquisa em documentação oficial do RISC-V Foundation e literatura científica (artigos, livros-texto como Patterson\&Hennessy, whitepapers industriais);
+  \item Análise comparativa entre RISC-V, ARM e x86: aspecto ISA, licenciamento, ecossistema de ferramentas, microarquitetura, extensibilidade e suporte à educação;
+  \item Implementação dos programas em Assembly RISC-V e execução em simuladores (RARS, RISC-V Web Simulator, Spike, QEMU) para observação de comportamento, debugging e experimentação;
+  \item Elaboração de relatório técnico e do presente artigo sintetizando os achados.
+\end{enumerate}
+
+\section{Breve introdução ao RISC-V}
+RISC-V é uma família de ISAs RISC (Reduced Instruction Set Computer) projetada com simplicidade, modularidade e extensibilidade em mente. Foi concebida na Universidade da Califórnia, Berkeley, e sua especificação é mantida aberta pela RISC-V Foundation. Alguns pontos chave:
+\begin{itemize}[noitemsep]
+  \item ISA base(es): RV32I, RV64I, com extensões opcionais (M — multiply/divide, A — atomic, F/D — ponto flutuante, C — compressed, etc.).
+  \item Formato de instruções simples e ortogonalidade: registradores gerais amplos, instruções de carga/armazenamento separadas de operações aritméticas.
+  \item Simplicidade de decodificação: instruções tipicamente de tamanho fixo (32 bits), com possibilidade de extensão para instruções comprimidas (16 bits) e instruções 64/128 bits em extensões.
+  \item Licenciamento aberto: a especificação é livre para implementação, o que reduz barreiras ao desenvolvimento e pesquisa.
+\end{itemize}
+
+\section{Comparação: RISC-V vs ARM vs x86}
+A comparação considera vários níveis: ISA, microarquitetura típica, ecossistema e impacto econômico/educacional.
+
+\subsection{Concepção ISA}
+RISC-V segue a filosofia RISC: poucas instruções simples, formatos regulares e uma clara separação entre memória e registradores. ARM, nas formas modernas (ARMv8/AArch64), também é RISC-like, mas historicamente (ARMv7 e anteriores) tinha transições e várias extensões proprietárias. x86 é uma ISA CISC com instruções complexas, comprimento variável e forte compatibilidade retroativa.
+
+Consequências práticas:
+\begin{itemize}[noitemsep]
+  \item Decodificação: RISC-V e ARM possuem decodificadores mais simples e pipelines previsíveis; x86 demanda lógica complexa (micro-op translation) para manter compatibilidade.
+  \item Codificação: RISC-V é facilmente analisável e extensível; x86 tem encodings legados que dificultam alterações.
+  \item Simplicidade para ensino: RISC-V é ideal para cursos introdutórios por sua clareza e por ser aberta.
+\end{itemize}
+
+\subsection{Extensibilidade e Licenciamento}
+RISC-V é projetada para ser extensível: as extensões são documentadas e padronizadas. Além disso, qualquer organização pode implementar o core sem pagar royalties pelo ISA. ARM e x86 exigem licenciamento/contratos — ARM licencia designs e IP; x86 é controlada por poucas empresas (Intel/AMD) e seu uso é mais restrito.
+
+\subsection{Ecossistema de ferramentas}
+Historicamente, x86 e ARM têm ecossistemas maduros (compiladores, depuradores, sistemas operacionais, bibliotecas). RISC-V está em rápida maturação: GCC/Clang suportam RISC-V, binutils, QEMU, Spike, e simuladores educacionais (RARS) existem. A vantagem do RISC-V é que sua abertura favorece inovação em ferramentas e pesquisa em hardware/software co-design.
+
+\subsection{Microarquitetura e Desempenho}
+A ISA por si só não determina desempenho; microarquitetura (pipeline, execução fora de ordem, caches, predição de ramo) é crucial. Chips ARM modernos (ex.: cores Cortex) e x86 (Intel/AMD) são altamente otimizados, com implementações proprietárias avançadas. Implementações RISC-V comerciais estão evoluindo e podem adotar técnicas análogas; a falta de barreiras de licenciamento acelera diversidade de implementações.
+
+\subsection{Segurança e Extensões Privilegiadas}
+RISC-V especifica modos de privilégio e tem trabalho ativo em extensões de segurança (p.ex.: PMP — Physical Memory Protection). ARM e x86 têm longas histórias de extensões de segurança (TrustZone, SGX, etc.). O caráter aberto de RISC-V possibilita propostas comunitárias e padronização de mecanismos de segurança adaptados a novas necessidades.
+
+\section{Impactos do uso de uma ISA aberta na academia e na indústria}
+A adoção de uma ISA aberta como RISC-V tem impactos múltiplos:
+\begin{itemize}[noitemsep]
+  \item Pesquisa acadêmica: pesquisadores podem propor e testar extensões de ISA, acelerando avanços em arquitetura de processadores, segurança e aceleradores especializados.
+  \item Ensino: universidades podem ensinar microarquitetura e design de ISAs com exemplos reais, sem barreiras de licenciamento.
+  \item Indústria: empresas podem reduzir custos com licenças e customizar designs para aplicações específicas (IoT, edge computing, aceleradores), fomentando competição e inovação.
+  \item Padronização e interoperabilidade: há desafios para compatibilidade binária e certificação, mas a existência de um padrão aberto favorece interoperabilidade a longo prazo.
+\end{itemize}
+
+\section{Implementação prática: Projeto Fibonacci}
+A implementação prática do projeto incluiu duas versões do algoritmo de Fibonacci em Assembly RISC-V: "iterativa" e "recursiva". Os arquivos estão no repositório e foram testados principalmente no simulador RARS (por ser didático e possuir syscalls simples para I/O).
+
+\subsection{Ambiente e ferramentas}
+Ferramentas usadas:
+\begin{itemize}[noitemsep]
+  \item RARS (RISC-V Assembler and Runtime Simulator) para montagem/execução interativa e teste de syscalls didáticos;
+  \item Opcionalmente: toolchain GNU para RISC-V (`riscv64-unknown-elf-as`, `gcc`, `ld`, `objcopy`) e simuladores como Spike/QEMU para testes bare-metal;
+  \item Editor de texto e scripts PowerShell para automatizar execução local.
+\end{itemize}
+
+\subsection{Observações sobre as implementações}
+\begin{itemize}[noitemsep]
+  \item As implementações usam convenções de syscall no estilo RARS: `a7` contém o número da syscall (ex.: 4 = print_string; 5 = read_int; 1 = print_int; 10 = exit) e `a0` transporta argumento/retorno.
+  \item A versão recursiva ilustra uso de pilha, preservação de `ra` e `s0`, e overhead recursivo (crescimento exponencial do tempo); a iterativa é eficiente e adequada para valores maiores de n.
+\end{itemize}
+
+\section{Resultados e discussão}
+\subsection{Execução e comportamento}
+No RARS o programa apresenta o prompt para entrada, aceita um inteiro e imprime o valor de Fibonacci correspondente. A implementação recursiva funciona corretamente para pequenas entradas, mas excede rapidamente o tempo/recursos para n maiores (recomendado n <= 20). A implementação iterativa calcula valores muito maiores eficientemente.
+
+\subsection{Lições aprendidas}
+\begin{itemize}[noitemsep]
+  \item O uso de uma ISA simples como RISC-V facilita o entendimento de operações básicas e do fluxo de chamadas/retornos;
+  \item A existência de simuladores didáticos acelera aprendizagem; entretanto, a transição para execução em toolchain/ambientes bare-metal exige cuidado com diferenças de syscalls e startup;
+  \item A modularidade de RISC-V permite que estudantes experimentem extensões (por exemplo, adicionar uma extensão hipotética para operações de vetores) sem questões de licenciamento.
+\end{itemize}
+
+\section{Conclusões}
+Este trabalho sintetiza um estudo sobre RISC-V, suas diferenças frente a arquiteturas proprietárias e a implementação prática de programas em Assembly para fins educacionais. RISC-V destaca-se por sua abertura, simplicidade e capacidade de extensibilidade, tornando-se atrativo tanto para pesquisa quanto para uso industrial em nichos que se beneficiam de customização. A experiência prática com Assembly e simuladores reforça conceitos estruturais de arquitetura de computadores e permite a formação de alunos em baixo nível de forma direta.
+
+\section{Trabalhos futuros}
+Entre possíveis desdobramentos estão:
+\begin{itemize}[noitemsep]
+  \item Implementar uma versão com suporte a impressão formatada (conversão inteiro->string) para execução bare-metal em `spike` sem `pk`;
+  \item Desenvolver um pequeno core RISC-V didático (por exemplo, em Verilog) que execute as rotinas e possibilite estudo de microarquitetura;
+  \item Avaliar desempenho de implementações RISC-V comerciais frente a ARM/x86 em benchmarks reais;
+  \item Propor e testar extensões pedagógicas da ISA para acelerar algoritmos específicos.
+\end{itemize}
+
+\section*{Agradecimentos}
+Agradecemos aos mantenedores do projeto RISC-V e aos autores das ferramentas usadas (RARS, Spike, QEMU, GCC), bem como às referências acadêmicas que embasaram a comparação.
+
+\begin{thebibliography}{9}
+\bibitem{patterson} Patterson, D. A.; Hennessy, J. L. Computer Organization and Design: The Hardware/Software Interface. Morgan Kaufmann.
+\bibitem{riscv-spec} Waterman, A., et al. The RISC-V Instruction Set Manual, Volume I: User-Level ISA. RISC-V Foundation.
+\bibitem{arm} ARM Architecture Reference Manual.
+\bibitem{x86} Intel 64 and IA-32 Architectures Software Developer's Manual.
+\bibitem{rars} RARS: RISC-V Assembler and Runtime Simulator. https://github.com/TheThirdOne/rars
+\end{thebibliography}
+
+\appendix
+\section{Apêndice A: Código — fibonacci\_iter.s}
+\begin{lstlisting}[language={},caption={fibonacci_iter.s}]
+.data
+prompt: .asciiz "n = "
+.text
+.global main
+main:
+    la a0, prompt
+    li a7, 4
+    ecall
+
+    li a7, 5
+    ecall
+    mv t0, a0       # n in t0
+
+    li t1, 0        # a = 0
+    li t2, 1        # b = 1
+    beqz t0, fib_print_zero
+
+    li t3, 1        # i = 1
+loop_check:
+    slt t4, t3, t0  # t4 = (i < n)
+    beqz t4, fib_print_result
+    add t5, t1, t2
+    mv t1, t2
+    mv t2, t5
+    addi t3, t3, 1
+    j loop_check
+
+fib_print_zero:
+    li a0, 0
+    li a7, 1
+    ecall
+    j fib_exit
+
+fib_print_result:
+    mv a0, t2
+    li a7, 1
+    ecall
+
+fib_exit:
+    li a7, 10
+    ecall
+\end{lstlisting}
+
+\section{Apêndice B: Código — fibonacci\_rec.s}
+\begin{lstlisting}[language={},caption={fibonacci_rec.s}]
+.data
+prompt: .asciiz "n = "
+.text
+.global main
+main:
+    la a0, prompt
+    li a7, 4
+    ecall
+
+    li a7, 5
+    ecall
+    mv a0, a0       # n in a0 for call
+    jal ra, fib
+
+    li a7, 1
+    ecall
+
+    li a7, 10
+    ecall
+
+fib:
+    addi sp, sp, -16
+    sw ra, 12(sp)
+    sw s0, 8(sp)
+    mv s0, a0
+
+    li t0, 0
+    beq a0, t0, fib_ret0
+    li t1, 1
+    beq a0, t1, fib_ret1
+
+    addi a0, s0, -1
+    jal ra, fib
+    mv t2, a0
+
+    addi a0, s0, -2
+    jal ra, fib
+
+    add a0, a0, t2
+    j fib_restore
+
+fib_ret0:
+    li a0, 0
+    j fib_restore
+
+fib_ret1:
+    li a0, 1
+
+fib_restore:
+    lw ra, 12(sp)
+    lw s0, 8(sp)
+    addi sp, sp, 16
+    ret
+\end{lstlisting}
+
+\end{document}
